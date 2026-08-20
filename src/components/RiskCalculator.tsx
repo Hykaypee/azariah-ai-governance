@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { ARSFactors } from '../types';
+import { generateAuditPdf } from '../utils/generateAuditReport';
 import {
   calculateARS,
   DATA_SENSITIVITY_OPTIONS,
   AUTONOMY_LEVEL_OPTIONS,
-  IMPACT_RADIUS_OPTIONS
+  IMPACT_RADIUS_OPTIONS,
 } from '../utils/arsCalculator';
 import {
   Sliders,
@@ -13,18 +14,20 @@ import {
   Check,
   Cpu,
   FileCheck,
-  ArrowRight
+  ArrowRight,
 } from 'lucide-react';
 
 interface RiskCalculatorProps {
-  onTransferToScoping: (arsPayload: any) => void;
+  onTransferToScoping?: (arsPayload: any) => void;
 }
 
-export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ onTransferToScoping }) => {
+export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
+  onTransferToScoping,
+}) => {
   const [factors, setFactors] = useState<ARSFactors>({
     dataSensitivity: 4,
     autonomyLevel: 3,
-    impactRadius: 4
+    impactRadius: 3,
   });
 
   const [copied, setCopied] = useState(false);
@@ -32,44 +35,19 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ onTransferToScop
 
   const evaluation = useMemo(() => calculateARS(factors), [factors]);
 
-  // Generate full JSON payload for audit export
   const fullJsonPayload = useMemo(() => {
     return {
-      metadata: {
-        engine: 'Azariah Consult Algorithmic Risk Scoring (ARS) Engine v3.2',
-        assessmentDate: new Date().toISOString(),
-        classification: 'OFFICIAL-SENSITIVE-COMMERCIAL',
-        division: 'TAS Consult Ltd — AI Statutory Assurance Practice'
+      auditMetadata: {
+        timestamp: new Date().toISOString(),
+        engineVersion: '1.4.0-Enterprise',
+        evaluationModel: 'ARS-Statutory-MultiFactor',
       },
-      factors: {
-        dataSensitivity: {
-          level: factors.dataSensitivity,
-          label: DATA_SENSITIVITY_OPTIONS.find((o) => o.value === factors.dataSensitivity)?.label
-        },
-        autonomyLevel: {
-          level: factors.autonomyLevel,
-          label: AUTONOMY_LEVEL_OPTIONS.find((o) => o.value === factors.autonomyLevel)?.label
-        },
-        impactRadius: {
-          level: factors.impactRadius,
-          label: IMPACT_RADIUS_OPTIONS.find((o) => o.value === factors.impactRadius)?.label
-        }
+      inputFactors: factors,
+      evaluationResult: evaluation,
+      statutoryEnforcement: {
+        jurisdiction: 'United Kingdom / NHS Digital / CDDO ATRS Tier-2',
+        mandatoryControls: evaluation.statutoryFlags,
       },
-      mathematicalOutput: {
-        formula: 'ARS = D × (A + I)',
-        calculation: `${factors.dataSensitivity} × (${factors.autonomyLevel} + ${factors.impactRadius})`,
-        score: evaluation.score,
-        maxScore: 32,
-        assignedTier: evaluation.tier,
-        tierLabel: evaluation.tierLabel
-      },
-      statutoryMandate: {
-        statutorySummary: evaluation.statutorySummary,
-        regulatoryReferences: evaluation.regulatoryReferences,
-        recommendedEnclave: evaluation.recommendedModelApproach,
-        mandatoryDeliverables: evaluation.deliverables,
-        technicalSafeguards: evaluation.technicalSafeguards
-      }
     };
   }, [factors, evaluation]);
 
@@ -81,12 +59,12 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ onTransferToScop
 
   const handleDownloadJSON = () => {
     const blob = new Blob([JSON.stringify(fullJsonPayload, null, 2)], {
-      type: 'application/json'
+      type: 'application/json',
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `AZARIAH_ARS_ASSESSMENT_TIER_${evaluation.tier.replace(' ', '_')}_${Date.now()}.json`;
+    a.download = `ARS-Statutory-Audit-${evaluation.tier.replace(/\s+/g, '-')}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -95,262 +73,248 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ onTransferToScop
     setTimeout(() => setDownloaded(false), 2000);
   };
 
+  const handleExportPDF = () => {
+    generateAuditPdf({
+      auditId: `AC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+      timestamp:
+        new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+      dataSensitivityLevel: factors.dataSensitivity,
+      dataSensitivityLabel: `Level ${factors.dataSensitivity}: Sovereign Processing`,
+      autonomyLevel: factors.autonomyLevel,
+      autonomyLabel: `Level ${factors.autonomyLevel}: Oversight Classification`,
+      impactRadiusLevel: factors.impactRadius,
+      impactRadiusLabel: `Level ${factors.impactRadius}: Statutory Blast Radius`,
+      arsScore: evaluation.score,
+      tierBadge: evaluation.tier,
+      tierDescription: evaluation.remediationPlan,
+      statutoryRequirements: evaluation.statutoryFlags,
+      deploymentTopology:
+        'Sovereign Air-Gapped UK Enclave (HSCN/PSN peered with Hardware-level TEE Enclaves)',
+      recommendedActions: [
+        'Execute sub-50ms hardware-isolated NER token redaction buffer before foundational LLM inference.',
+        'Isolate enterprise vector DB to sovereign boundaries with deterministic schema validation gates.',
+      ],
+    });
+  };
+
   return (
-    <section className="py-20 bg-[#070707] border-t border-[#262626] relative" id="risk-engine">
+    <section
+      className="py-20 bg-[#070707] border-t border-[#262626] relative"
+      id="risk-engine"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-          <div>
-            <div className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 font-bold">
-              ASSURANCE ALGORITHM // ARS MATRIX
-            </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#F5F5F5] tracking-tight">
-              4-Tier Algorithmic Risk Engine
-            </h2>
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#04AF37]/30 bg-[#04AF37]/10 text-[#04AF37] text-xs font-mono mb-4">
+            <Sliders className="w-3.5 h-3.5" />
+            <span>ALGORITHMIC RISK SCORING (ARS) ENGINE</span>
           </div>
-          <div className="flex items-center gap-2 font-mono text-[11px] text-[#A3A3A3] bg-[#121212] border border-[#262626] px-3 py-1.5 rounded">
-            <span className="text-[#D4AF37] font-bold">FORMULA:</span>
-            <span>ARS = Data (1-4) × [Autonomy (1-4) + Radius (1-4)]</span>
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Deterministic Statutory Risk Calculator
+          </h2>
+          <p className="mt-3 text-sm sm:text-base text-[#a3a3a3]">
+            Score enterprise autonomous systems under UK GDPR Article 9, NHS
+            DCB0129, ATRS Tier-2, and ISO 42001.
+          </p>
         </div>
 
-        {/* Sleek Interface ARS Container */}
-        <div className="bg-[#121212] border-2 border-[#D4AF37]/20 rounded-xl p-5 sm:p-8 relative shadow-2xl">
-          
-          {/* Top Status Telemetry Badge */}
-          <div className="flex items-center justify-between pb-5 mb-6 border-b border-[#262626]">
-            <div className="flex items-center gap-2">
-              <span className="text-[#D4AF37] font-mono font-bold text-sm">[04]</span>
-              <span className="text-sm font-bold text-[#F5F5F5] uppercase tracking-wider">
-                System Risk Factor Calibration
-              </span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* SLIDERS COLUMN */}
+          <div className="lg:col-span-7 space-y-6 bg-[#0f0f0f] border border-[#262626] rounded-xl p-6">
+            {/* Factor 1: Data Sensitivity */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-white">
+                  1. Data Sensitivity Index
+                </label>
+                <span className="text-xs font-mono text-[#04AF37] bg-[#04AF37]/10 px-2 py-0.5 rounded border border-[#04AF37]/30">
+                  Level {factors.dataSensitivity} / 4
+                </span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="1"
+                value={factors.dataSensitivity}
+                onChange={(e) =>
+                  setFactors({
+                    ...factors,
+                    dataSensitivity: Number(e.target.value),
+                  })
+                }
+                className="w-full h-2 bg-[#262626] rounded-lg appearance-none cursor-pointer accent-[#04AF37]"
+              />
+              <p className="text-xs text-[#a3a3a3] mt-2">
+                {DATA_SENSITIVITY_OPTIONS[factors.dataSensitivity - 1]?.label ||
+                  'Special category data, NHS PID, biometric identifiers, or cross-border restricted records.'}
+              </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-[#A3A3A3] font-mono uppercase">Engine V3.2 // ACTIVE</span>
-              <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_#22c55e]"></div>
+            {/* Factor 2: Autonomy Level */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-white">
+                  2. System Autonomy & Oversight
+                </label>
+                <span className="text-xs font-mono text-[#04AF37] bg-[#04AF37]/10 px-2 py-0.5 rounded border border-[#04AF37]/30">
+                  Level {factors.autonomyLevel} / 4
+                </span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="1"
+                value={factors.autonomyLevel}
+                onChange={(e) =>
+                  setFactors({
+                    ...factors,
+                    autonomyLevel: Number(e.target.value),
+                  })
+                }
+                className="w-full h-2 bg-[#262626] rounded-lg appearance-none cursor-pointer accent-[#04AF37]"
+              />
+              <p className="text-xs text-[#a3a3a3] mt-2">
+                {AUTONOMY_LEVEL_OPTIONS[factors.autonomyLevel - 1]?.label ||
+                  'Fully automated agent execution with zero deterministic human-in-the-loop validation.'}
+              </p>
+            </div>
+
+            {/* Factor 3: Impact Radius */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-white">
+                  3. Blast Radius / Societal Impact
+                </label>
+                <span className="text-xs font-mono text-[#04AF37] bg-[#04AF37]/10 px-2 py-0.5 rounded border border-[#04AF37]/30">
+                  Level {factors.impactRadius} / 4
+                </span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="1"
+                value={factors.impactRadius}
+                onChange={(e) =>
+                  setFactors({
+                    ...factors,
+                    impactRadius: Number(e.target.value),
+                  })
+                }
+                className="w-full h-2 bg-[#262626] rounded-lg appearance-none cursor-pointer accent-[#04AF37]"
+              />
+              <p className="text-xs text-[#a3a3a3] mt-2">
+                {IMPACT_RADIUS_OPTIONS[factors.impactRadius - 1]?.label ||
+                  'High clinical or legal exposure impacting public safety, statutory compliance, or financial assets.'}
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Sliders Column (7 Cols) */}
-            <div className="lg:col-span-7 space-y-6">
-              
-              {/* Factor 1: Data Sensitivity */}
-              <div>
-                <div className="flex justify-between text-[11px] uppercase font-bold mb-1.5">
-                  <label className="text-[#CCCCCC] flex items-center gap-1.5">
-                    <span className="text-[#D4AF37] font-mono">[D]</span>
-                    <span>Data Sensitivity</span>
-                  </label>
-                  <span className="text-[#D4AF37] font-mono">
-                    {factors.dataSensitivity} - {DATA_SENSITIVITY_OPTIONS.find(o => o.value === factors.dataSensitivity)?.label.split(':')[1]?.trim()}
+          {/* AUDIT SUMMARY COLUMN */}
+          <div className="lg:col-span-5 bg-[#121212] border-2 border-[#04AF37]/30 rounded-xl p-5 sm:p-6 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between border-b border-[#262626] pb-4 mb-4">
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-[#737373] block">
+                    STATUTORY ASSURANCE LEVEL
                   </span>
+                  <h3 className="text-xl font-bold text-white">
+                    {evaluation.tier}
+                  </h3>
                 </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="4"
-                  step="1"
-                  value={factors.dataSensitivity}
-                  onChange={(e) => setFactors({ ...factors, dataSensitivity: parseInt(e.target.value) })}
-                  className="w-full accent-[#D4AF37] h-1 bg-[#262626] rounded-full appearance-none cursor-pointer mb-2"
-                />
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-2">
-                  {DATA_SENSITIVITY_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setFactors({ ...factors, dataSensitivity: opt.value })}
-                      className={`text-left p-2 rounded border text-[10px] transition-all cursor-pointer ${
-                        factors.dataSensitivity === opt.value
-                          ? 'bg-[#181818] border-[#D4AF37] text-[#D4AF37] font-bold'
-                          : 'bg-[#070707] border-[#262626] text-[#8C8C8C] hover:border-[#383838]'
-                      }`}
-                    >
-                      <div className="truncate font-mono">L{opt.value}: {opt.label.split(':')[0]}</div>
-                    </button>
-                  ))}
+                <div className="text-right">
+                  <span className="text-[10px] font-mono uppercase text-[#737373] block">
+                    ARS SCORE
+                  </span>
+                  <span className="text-2xl font-black text-[#04AF37]">
+                    {evaluation.score}
+                    <span className="text-xs text-[#737373] font-normal">
+                      {' '}
+                      / 32
+                    </span>
+                  </span>
                 </div>
               </div>
 
-              {/* Factor 2: Autonomy Level */}
-              <div className="pt-4 border-t border-[#1C1C1C]">
-                <div className="flex justify-between text-[11px] uppercase font-bold mb-1.5">
-                  <label className="text-[#CCCCCC] flex items-center gap-1.5">
-                    <span className="text-[#D4AF37] font-mono">[A]</span>
-                    <span>Autonomy Level</span>
-                  </label>
-                  <span className="text-[#D4AF37] font-mono">
-                    {factors.autonomyLevel} - {AUTONOMY_LEVEL_OPTIONS.find(o => o.value === factors.autonomyLevel)?.label.split(':')[1]?.trim()}
-                  </span>
+              <div className="space-y-3 mb-6">
+                <div className="text-xs text-[#a3a3a3]">
+                  <strong className="text-white">Remediation Plan: </strong>
+                  {evaluation.remediationPlan}
                 </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="4"
-                  step="1"
-                  value={factors.autonomyLevel}
-                  onChange={(e) => setFactors({ ...factors, autonomyLevel: parseInt(e.target.value) })}
-                  className="w-full accent-[#D4AF37] h-1 bg-[#262626] rounded-full appearance-none cursor-pointer mb-2"
-                />
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-2">
-                  {AUTONOMY_LEVEL_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setFactors({ ...factors, autonomyLevel: opt.value })}
-                      className={`text-left p-2 rounded border text-[10px] transition-all cursor-pointer ${
-                        factors.autonomyLevel === opt.value
-                          ? 'bg-[#181818] border-[#D4AF37] text-[#D4AF37] font-bold'
-                          : 'bg-[#070707] border-[#262626] text-[#8C8C8C] hover:border-[#383838]'
-                      }`}
-                    >
-                      <div className="truncate font-mono">L{opt.value}: {opt.label.split(':')[0]}</div>
-                    </button>
-                  ))}
+
+                <div>
+                  <span className="text-[11px] font-bold text-white block mb-1.5 uppercase tracking-wide">
+                    Mandatory Statutory Controls:
+                  </span>
+                  <ul className="space-y-1.5">
+                    {evaluation.statutoryFlags.map((flag, idx) => (
+                      <li
+                        key={idx}
+                        className="text-xs text-[#d4d4d4] flex items-start gap-2"
+                      >
+                        <FileCheck className="w-3.5 h-3.5 text-[#04AF37] shrink-0 mt-0.5" />
+                        <span>{flag}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-
-              {/* Factor 3: Impact Radius */}
-              <div className="pt-4 border-t border-[#1C1C1C]">
-                <div className="flex justify-between text-[11px] uppercase font-bold mb-1.5">
-                  <label className="text-[#CCCCCC] flex items-center gap-1.5">
-                    <span className="text-[#D4AF37] font-mono">[I]</span>
-                    <span>Impact Radius</span>
-                  </label>
-                  <span className="text-[#D4AF37] font-mono">
-                    {factors.impactRadius} - {IMPACT_RADIUS_OPTIONS.find(o => o.value === factors.impactRadius)?.label.split(':')[1]?.trim()}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="4"
-                  step="1"
-                  value={factors.impactRadius}
-                  onChange={(e) => setFactors({ ...factors, impactRadius: parseInt(e.target.value) })}
-                  className="w-full accent-[#D4AF37] h-1 bg-[#262626] rounded-full appearance-none cursor-pointer mb-2"
-                />
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-2">
-                  {IMPACT_RADIUS_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setFactors({ ...factors, impactRadius: opt.value })}
-                      className={`text-left p-2 rounded border text-[10px] transition-all cursor-pointer ${
-                        factors.impactRadius === opt.value
-                          ? 'bg-[#181818] border-[#D4AF37] text-[#D4AF37] font-bold'
-                          : 'bg-[#070707] border-[#262626] text-[#8C8C8C] hover:border-[#383838]'
-                      }`}
-                    >
-                      <div className="truncate font-mono">L{opt.value}: {opt.label.split(':')[0]}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
             </div>
 
-            {/* Right Output Meter Column (5 Cols) */}
-            <div className="lg:col-span-5 flex flex-col space-y-4">
-              
-              {/* Score Display Card */}
-              <div className="bg-[#181818] border border-[#262626] rounded-lg p-5 flex flex-col items-center justify-center text-center">
-                <div className="text-[10px] uppercase text-[#A3A3A3] mb-1 font-mono tracking-widest">
-                  Algorithmic Score (ARS)
-                </div>
-                <div className="text-5xl sm:text-6xl font-black text-[#D4AF37] leading-none mb-2 font-mono">
-                  {evaluation.score}
-                </div>
-                
-                {/* Status Tier Badge */}
-                <div className={`px-3 py-1 rounded-sm text-[10px] font-bold uppercase tracking-widest mb-2 ${
-                  evaluation.tier === 'Tier 4'
-                    ? 'bg-red-600/20 text-red-400 border border-red-500/50'
-                    : evaluation.tier === 'Tier 3'
-                    ? 'bg-[#D4AF37]/20 text-[#E5C158] border border-[#D4AF37]/50'
-                    : evaluation.tier === 'Tier 2'
-                    ? 'bg-sky-500/20 text-sky-400 border border-sky-500/50'
-                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                }`}>
-                  {evaluation.tier}: {evaluation.tierLabel.split('(')[0]}
-                </div>
-
-                <div className="text-[11px] text-[#A3A3A3] mt-1 line-clamp-2">
-                  {evaluation.statutorySummary}
-                </div>
-              </div>
-
-              {/* Recommended Enclave */}
-              <div className="p-3 bg-[#070707] border border-[#262626] rounded text-xs">
-                <div className="text-[9px] font-mono text-[#D4AF37] uppercase font-bold mb-0.5">
-                  Deployment Topology:
-                </div>
-                <div className="text-[#E0E0E0] text-[11px]">
-                  {evaluation.recommendedModelApproach}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-2 pt-1">
+            {/* ACTION BAR */}
+            <div className="space-y-3 pt-4 border-t border-[#262626]">
+              <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={handleCopyJSON}
-                  className="bg-[#070707] border border-[#262626] hover:border-[#D4AF37] text-[10px] font-bold py-2 rounded text-[#A3A3A3] hover:text-[#F5F5F5] uppercase flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  className="flex-1 bg-[#070707] border border-[#262626] hover:border-[#04AF37] text-[10px] font-bold text-white px-3 py-2 rounded flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-[#D4AF37]" />}
+                  {copied ? (
+                    <Check className="w-3 h-3 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3 h-3 text-[#a3a3a3]" />
+                  )}
                   <span>{copied ? 'Copied' : 'Copy JSON'}</span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleDownloadJSON}
-                  className="bg-[#070707] border border-[#262626] hover:border-[#D4AF37] text-[10px] font-bold py-2 rounded text-[#A3A3A3] hover:text-[#F5F5F5] uppercase flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  className="flex-1 bg-[#070707] border border-[#262626] hover:border-[#04AF37] text-[10px] font-bold text-white px-3 py-2 rounded flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  {downloaded ? <Check className="w-3 h-3 text-emerald-400" /> : <FileDown className="w-3 h-3 text-[#D4AF37]" />}
-                  <span>{downloaded ? 'Exported' : 'Export .JSON'}</span>
+                  {downloaded ? (
+                    <Check className="w-3 h-3 text-emerald-400" />
+                  ) : (
+                    <FileDown className="w-3 h-3 text-[#a3a3a3]" />
+                  )}
+                  <span>{downloaded ? 'Exported' : 'Export JSON'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportPDF}
+                  className="flex-1 bg-[#070707] border border-[#04AF37]/50 hover:border-[#04AF37] text-[10px] font-bold text-[#04AF37] px-3 py-2 rounded flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <FileDown className="w-3.5 h-3.5 text-[#04AF37]" />
+                  <span>Export PDF</span>
                 </button>
               </div>
 
-              <button
-                onClick={() => onTransferToScoping(fullJsonPayload)}
-                className="w-full bg-[#D4AF37] text-black font-bold py-2.5 text-[10px] rounded uppercase tracking-wider shadow-[0_0_15px_rgba(212,175,55,0.2)] hover:bg-[#E5C158] transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Transfer ARS Payload to Scoping Intake</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-
-            </div>
-
-          </div>
-
-          {/* Required Artifacts Bar (Bottom) */}
-          <div className="mt-8 pt-5 border-t border-[#262626]">
-            <h5 className="text-[10px] uppercase font-bold text-[#A3A3A3] mb-3 tracking-widest flex items-center justify-between">
-              <span>Required Statutory Artifacts &amp; Deliverables</span>
-              <span className="text-[#D4AF37] font-mono">{evaluation.deliverables.length} MANDATORY</span>
-            </h5>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {evaluation.deliverables.slice(0, 3).map((deliv) => (
-                <div
-                  key={deliv.id}
-                  className="bg-[#070707] p-2.5 border border-[#262626] rounded text-[10px] flex items-center justify-between gap-2"
+              {onTransferToScoping && (
+                <button
+                  type="button"
+                  onClick={() => onTransferToScoping(fullJsonPayload)}
+                  className="w-full bg-[#04AF37] hover:bg-[#038e2c] text-black font-bold py-2.5 text-[10px] rounded uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-green-500 font-bold">✓</span>
-                    <span className="text-[#E0E0E0] truncate font-medium">{deliv.name}</span>
-                  </div>
-                  <span className="text-[9px] font-mono text-[#D4AF37] shrink-0">{deliv.reference}</span>
-                </div>
-              ))}
+                  <span>Transfer ARS Payload to Scoping Intake</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
-
         </div>
-
       </div>
     </section>
   );
 };
-
