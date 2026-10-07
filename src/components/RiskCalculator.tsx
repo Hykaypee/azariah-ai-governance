@@ -46,7 +46,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
       evaluationResult: evaluation,
       statutoryEnforcement: {
         jurisdiction: 'United Kingdom / NHS Digital / CDDO ATRS Tier-2',
-        mandatoryControls: evaluation.statutoryFlags,
+        mandatoryControls: evaluation?.statutoryFlags || [],
       },
     };
   }, [factors, evaluation]);
@@ -64,7 +64,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ARS-Statutory-Audit-${evaluation.tier.replace(/\s+/g, '-')}.json`;
+    a.download = `ARS-Statutory-Audit-${(evaluation?.tier || 'Assurance').replace(/\s+/g, '-')}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -84,10 +84,10 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
       autonomyLabel: `Level ${factors.autonomyLevel}: Oversight Classification`,
       impactRadiusLevel: factors.impactRadius,
       impactRadiusLabel: `Level ${factors.impactRadius}: Statutory Blast Radius`,
-      arsScore: evaluation.score,
-      tierBadge: evaluation.tier,
-      tierDescription: evaluation.remediationPlan,
-      statutoryRequirements: evaluation.statutoryFlags,
+      arsScore: evaluation?.score ?? 0,
+      tierBadge: evaluation?.tier || 'Assurance Required',
+      tierDescription: evaluation?.remediationPlan || 'Compliance assessment in progress.',
+      statutoryRequirements: evaluation?.statutoryFlags || [],
       deploymentTopology:
         'Sovereign Air-Gapped UK Enclave (HSCN/PSN peered with Hardware-level TEE Enclaves)',
       recommendedActions: [
@@ -220,7 +220,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
                     STATUTORY ASSURANCE LEVEL
                   </span>
                   <h3 className="text-xl font-bold text-white">
-                    {evaluation.tier}
+                    {evaluation?.tier || 'Tier Evaluation'}
                   </h3>
                 </div>
                 <div className="text-right">
@@ -228,7 +228,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
                     ARS SCORE
                   </span>
                   <span className="text-2xl font-black text-[#04AF37]">
-                    {evaluation.score}
+                    {evaluation?.score ?? 0}
                     <span className="text-xs text-[#737373] font-normal">
                       {' '}
                       / 32
@@ -240,7 +240,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
               <div className="space-y-3 mb-6">
                 <div className="text-xs text-[#a3a3a3]">
                   <strong className="text-white">Remediation Plan: </strong>
-                  {evaluation.remediationPlan}
+                  {evaluation?.remediationPlan || 'Pending parameter evaluation.'}
                 </div>
 
                 <div>
@@ -248,7 +248,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
                     Mandatory Statutory Controls:
                   </span>
                   <ul className="space-y-1.5">
-                    {evaluation.statutoryFlags.map((flag, idx) => (
+                    {(evaluation?.statutoryFlags || []).map((flag, idx) => (
                       <li
                         key={idx}
                         className="text-xs text-[#d4d4d4] flex items-start gap-2"
