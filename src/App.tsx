@@ -1,102 +1,230 @@
-import React, { useState } from 'react';
-import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { TrustTicker } from './components/TrustTicker';
-import { CapabilitiesGrid } from './components/CapabilitiesGrid';
-import { InteractiveNERDemo } from './components/InteractiveNERDemo';
-import { RiskCalculator } from './components/RiskCalculator';
-import { CaseStudyExplorer } from './components/CaseStudyExplorer';
-import { PricingSection } from './components/PricingSection';
-import { ScopingIntake } from './components/ScopingIntake';
-import { TechnicalDiscoveryModal } from './components/TechnicalDiscoveryModal';
-import { Footer } from './components/Footer';
+import React, { useState, useMemo } from 'react';
+import { ARSFactors } from '../types';
+import { generateAuditPdf } from '../utils/generateAuditReport';
+import {
+  calculateARS,
+  DATA_SENSITIVITY_OPTIONS,
+  AUTONOMY_LEVEL_OPTIONS,
+  IMPACT_RADIUS_OPTIONS,
+} from '../utils/arsCalculator';
+import {
+  Sliders,
+  FileDown,
+  Copy,
+  Check,
+  Cpu,
+  FileCheck,
+  ArrowRight,
+} from 'lucide-react';
 
-export default function App() {
-  const [isDiscoveryOpen, setIsDiscoveryOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<string | undefined>(undefined);
-  const [selectedBudget, setSelectedBudget] = useState<string | undefined>(undefined);
-  const [transferredArs, setTransferredArs] = useState<any>(null);
+interface RiskCalculatorProps {
+  onTransferToScoping?: (arsPayload: any) => void;
+}
 
-  const handleLaunchCalculator = () => {
-    const el = document.getElementById('risk-engine');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+export const RiskCalculator: React.FC<RiskCalculatorProps> = ({
+  onTransferToScoping,
+}) => {
+  const [factors, setFactors] = useState<ARSFactors>({
+    dataSensitivity: 4,
+    autonomyLevel: 3,
+    impactRadius: 3,
+  });
+
+  const [copied, setCopied] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
+  const evaluation = useMemo(() => calculateARS(factors), [factors]);
+
+  const fullJsonPayload = useMemo(() => {
+    return {
+      auditMetadata: {
+        timestamp: new Date().toISOString(),
+        engineVersion: '1.4.0-Enterprise',
+        evaluationModel: 'ARS-Statutory-MultiFactor',
+      },
+      inputFactors: factors,
+      evaluationResult: evaluation,
+      statutoryEnforcement: {
+        jurisdiction: 'United Kingdom / NHS Digital / CDDO ATRS Tier-2',
+        mandatoryControls: evaluation?.statutoryFlags || [],
+      },
+    };
+  }, [factors, evaluation]);
+
+  const handleCopyJSON = () => {
+    navigator.clipboard.writeText(JSON.stringify(fullJsonPayload, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSelectService = (serviceTitle: string) => {
-    setSelectedService(serviceTitle);
-    const el = document.getElementById('intake');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+  const handleDownloadJSON = () => {
+    const blob = new Blob([JSON.stringify(fullJsonPayload, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ARS-Statutory-Audit-${(evaluation?.tier || 'Assurance').replace(/\s+/g, '-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setDownloaded(true);
+    setTimeout(() => setDownloaded(false), 2000);
   };
 
-  const handleSelectTier = (tierTitle: string, price: string) => {
-    setSelectedService(tierTitle);
-    setSelectedBudget(price);
-    const el = document.getElementById('intake');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleTransferArsToScoping = (arsPayload: any) => {
-    setTransferredArs(arsPayload);
-    const el = document.getElementById('intake');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+  const handleExportPDF = () => {
+    generateAuditPdf({
+      auditId: `AC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+      timestamp:
+        new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+      dataSensitivityLevel: factors.dataSensitivity,
+      dataSensitivityLabel: `Level ${factors.dataSensitivity}: Sovereign Processing`,
+      autonomyLevel: factors.autonomyLevel,
+      autonomyLabel: `Level ${factors.autonomyLevel}: Oversight Classification`,
+      impactRadiusLevel: factors.impactRadius,
+      impactRadiusLabel: `Level ${factors.impactRadius}: Statutory Blast Radius`,
+      arsScore: evaluation?.score ?? 0,
+      tierBadge: evaluation?.tier || 'Assurance Required',
+      tierDescription: evaluation?.remediationPlan || 'Compliance assessment in progress.',
+      statutoryRequirements: evaluation?.statutoryFlags || [],
+      deploymentTopology:
+        'Sovereign Air-Gapped UK Enclave (HSCN/PSN peered with Hardware-level TEE Enclaves)',
+      recommendedActions: [
+        'Execute sub-50ms hardware-isolated NER token redaction buffer before foundational LLM inference.',
+        'Isolate enterprise vector DB to sovereign boundaries with deterministic schema validation gates.',
+      ],
+    });
   };
 
   return (
-    <div className="min-h-screen bg-[#070707] text-[#F5F5F5] selection:bg-[#D4AF37] selection:text-[#070707] flex flex-col">
-      {/* Institutional Top Navigation */}
-      <Navbar onOpenDiscovery={() => setIsDiscoveryOpen(true)} />
+    <section
+      className="py-20 bg-[#070707] border-t border-[#262626] relative"
+      id="risk-engine"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#04AF37]/30 bg-[#04AF37]/10 text-[#04AF37] text-xs font-mono mb-4">
+            <Sliders className="w-3.5 h-3.5" />
+            <span>ALGORITHMIC RISK SCORING (ARS) ENGINE</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Deterministic Statutory Risk Calculator
+          </h2>
+          <p className="mt-3 text-sm sm:text-base text-[#a3a3a3]">
+            Score enterprise autonomous systems under UK GDPR Article 9, NHS
+            DCB0129, ATRS Tier-2, and ISO 42001.
+          </p>
+        </div>
 
-      {/* Main Content Flow */}
-      <main className="flex-grow">
-        {/* Hero Section */}
-        <Hero
-          onOpenDiscovery={() => setIsDiscoveryOpen(true)}
-          onLaunchCalculator={handleLaunchCalculator}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* SLIDERS COLUMN */}
+          <div className="lg:col-span-7 space-y-6 bg-[#0f0f0f] border border-[#262626] rounded-xl p-6">
+            {/* Factor 1: Data Sensitivity */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-white">
+                  1. Data Sensitivity Index
+                </label>
+                <span className="text-xs font-mono text-[#04AF37] bg-[#04AF37]/10 px-2 py-0.5 rounded border border-[#04AF37]/30">
+                  Level {factors.dataSensitivity} / 4
+                </span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="1"
+                value={factors.dataSensitivity}
+                onChange={(e) =>
+                  setFactors({
+                    ...factors,
+                    dataSensitivity: Number(e.target.value),
+                  })
+                }
+                className="w-full h-2 bg-[#262626] rounded-lg appearance-none cursor-pointer accent-[#04AF37]"
+              />
+              <p className="text-xs text-[#a3a3a3] mt-2">
+                {DATA_SENSITIVITY_OPTIONS[factors.dataSensitivity - 1]?.label ||
+                  'Special category data, NHS PID, biometric identifiers, or cross-border restricted records.'}
+              </p>
+            </div>
 
-        {/* Institutional Accreditation Trust Ticker */}
-        <TrustTicker />
+            {/* Factor 2: Autonomy Level */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-white">
+                  2. System Autonomy & Oversight
+                </label>
+                <span className="text-xs font-mono text-[#04AF37] bg-[#04AF37]/10 px-2 py-0.5 rounded border border-[#04AF37]/30">
+                  Level {factors.autonomyLevel} / 4
+                </span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="1"
+                value={factors.autonomyLevel}
+                onChange={(e) =>
+                  setFactors({
+                    ...factors,
+                    autonomyLevel: Number(e.target.value),
+                  })
+                }
+                className="w-full h-2 bg-[#262626] rounded-lg appearance-none cursor-pointer accent-[#04AF37]"
+              />
+              <p className="text-xs text-[#a3a3a3] mt-2">
+                {AUTONOMY_LEVEL_OPTIONS[factors.autonomyLevel - 1]?.label ||
+                  'Fully automated agent execution with zero deterministic human-in-the-loop validation.'}
+              </p>
+            </div>
 
-        {/* Core Technical Systems Architecture & Automation Capabilities (4 Pillars) */}
-        <CapabilitiesGrid onSelectService={handleSelectService} />
+            {/* Factor 3: Impact Radius */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-white">
+                  3. Blast Radius / Societal Impact
+                </label>
+                <span className="text-xs font-mono text-[#04AF37] bg-[#04AF37]/10 px-2 py-0.5 rounded border border-[#04AF37]/30">
+                  Level {factors.impactRadius} / 4
+                </span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="1"
+                value={factors.impactRadius}
+                onChange={(e) =>
+                  setFactors({
+                    ...factors,
+                    impactRadius: Number(e.target.value),
+                  })
+                }
+                className="w-full h-2 bg-[#262626] rounded-lg appearance-none cursor-pointer accent-[#04AF37]"
+              />
+              <p className="text-xs text-[#a3a3a3] mt-2">
+                {IMPACT_RADIUS_OPTIONS[factors.impactRadius - 1]?.label ||
+                  'High clinical or legal exposure impacting public safety, statutory compliance, or financial assets.'}
+              </p>
+            </div>
+          </div>
 
-        {/* Live In-Flight NER & Caldicott Guardrail Testing Sandbox */}
-        <InteractiveNERDemo />
-
-        {/* Interactive 4-Tier Algorithmic Risk Calculator (ARS Engine) */}
-        <RiskCalculator onTransferToScoping={handleTransferArsToScoping} />
-
-        {/* Sector Case Study Blueprints */}
-        <CaseStudyExplorer onSelectService={handleSelectService} />
-
-        {/* Commercial Service Tiers & Milestone Schedules */}
-        <PricingSection onSelectTier={handleSelectTier} />
-
-        {/* Structured Scoping Intake & Cryptographic Ref Generation */}
-        <ScopingIntake
-          prefilledService={selectedService}
-          prefilledBudget={selectedBudget}
-          transferredArsPayload={transferredArs}
-        />
-      </main>
-
-      {/* Institutional Legal & Accreditation Footer */}
-      <Footer />
-
-      {/* Direct Discovery Booking Modal */}
-      <TechnicalDiscoveryModal
-        isOpen={isDiscoveryOpen}
-        onClose={() => setIsDiscoveryOpen(false)}
-      />
-    </div>
-  );
-}
-
+          {/* AUDIT SUMMARY COLUMN */}
+          <div className="lg:col-span-5 bg-[#121212] border-2 border-[#04AF37]/30 rounded-xl p-5 sm:p-6 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between border-b border-[#262626] pb-4 mb-4">
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-[#737373] block">
+                    STATUTORY ASSURANCE LEVEL
+                  </span>
+                  <h3 className="text-xl font-bold text-white">
+                    {evaluation?.tier || 'Tier Evaluation'}
+                  </h3>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-mono uppercase text-[#737373] block">
+                    ARS SCORE
+                  </span>
+                  <span className="text-2xl font-black text-[#04AF37]">
