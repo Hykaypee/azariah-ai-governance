@@ -45,4 +45,4 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDiscovery, onLaunchCalculator 
             </span>
           </h1>
 
-          {/* Sub-
+          {/* Sub-headline */}
