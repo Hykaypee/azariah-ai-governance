@@ -2,162 +2,137 @@ import { TechnicalCapability } from '../types';
 
 export const TECHNICAL_CAPABILITIES: TechnicalCapability[] = [
   {
-    id: 'grounded-rag',
-    number: '01',
-    title: 'Grounded RAG & Vector Knowledge Systems',
-    tagline: 'Deterministic retrieval with mathematical cosine gating & sovereign zero-leak enclaves.',
-    description: 'We architect enterprise-grade Retrieval-Augmented Generation engines designed strictly around UK Sovereign data boundaries (Azure UK South / AWS London / GCP europe-west2). By enforcing semantic chunking with strict 0.88 cosine similarity threshold gates, we eliminate hallucinated citations and prevent open-web data leaks.',
-    techStack: ['Azure AI Search', 'pgvector (PostgreSQL)', 'Qdrant / Milvus', 'LangChain / LlamaIndex', 'Cohere Rerank 3'],
-    enclaveSpec: 'UK Sovereign Enclave (FIPS 140-3 Zero Data Retention, VPC Peering, AES-256-GCM)',
+    id: "governance-portals",
+    number: "01",
+    title: "AI Governance & Safety Assessment",
+    tagline: "Comprehensive baseline diagnostics aligned with ISO 42001 and NIST AI Risk Management Frameworks.",
+    description: "We audit generative AI implementations, internal copilots, and third-party tools to classify organizational risks, stop data spillage, and establish audit-ready oversight.",
+    techStack: ['ISO/IEC 42001', 'NIST AI RMF', 'UK GDPR', 'Model Risk Registers'],
+    enclaveSpec: 'Audited Governance Architecture (Risk Tiering, Acceptable Use, Continuous DPIA)',
     coreMetrics: [
-      { label: 'Cosine Gating Threshold', value: '≥ 0.88' },
-      { label: 'Open-Web Leak Risk', value: '0.00%' },
-      { label: 'P99 Retrieval Latency', value: '< 110ms' },
-      { label: 'Citation Verifiability', value: '100% Deterministic' }
+      { label: 'Framework Alignment', value: '100% Target' },
+      { label: 'Shadow AI Detection', value: 'Complete' },
+      { label: 'Assessment Turnaround', value: '2-3 Weeks' },
+      { label: 'Audit Readiness', value: 'Verified' }
+    ],
+    features: [
+      'Comprehensive Shadow AI and Tenancy Discovery',
+      'ISO 42001 and NIST AI RMF Gap Diagnostics',
+      'Corporate AI Acceptable Use Policy Suite',
+      'Prioritized 60-Day Technical Remediation Roadmap'
     ],
     codeSnippet: {
+      filename: 'iso42001_governance_eval.py',
       language: 'python',
-      filename: 'sovereign_rag_gate.py',
-      code: `async def sovereign_retrieval_pipeline(query: str, tenant_id: str) -> SovereignContext:
-    # Strict UK Sovereign VPC Boundary with Tenant Isolation
-    embeddings = await sovereign_embedder.generate(query)
-    raw_nodes = await vector_store.similarity_search_with_score(
-        embeddings, k=15, filter={"tenant_id": tenant_id, "classification": "OFFICIAL_SENSITIVE"}
-    )
-    # Enforce Deterministic 0.88 Cosine Similarity Cutoff
-    gated_nodes = [node for node, score in raw_nodes if score >= 0.88]
-    if not gated_nodes:
-        return FallbackDeterministicResponse("STATUTORY_BOUNDARY_UNREACHED")
-    
-    reranked = cohere_uk.rerank(query=query, documents=gated_nodes, top_n=3)
-    return SovereignContext(nodes=reranked, cryptographic_hash=sha256_audit(reranked))`
-    },
-    features: [
-      'Multi-tenant UK Sovereign cloud enclaves (Azure/AWS/GCP)',
-      'Deterministic hierarchical semantic chunking & parent-document retrieval',
-      'Cosine similarity cutoff threshold gating (>= 0.88) with fallback deterministic routing',
-      'Zero Open-Web leak policies with air-gapped LLM inference endpoints',
-      'Immutable cryptographic hash audit trails for every query citation'
-    ]
-  },
-  {
-    id: 'automated-pipelines',
-    number: '02',
-    title: 'Automated Data Pipelines & Process Orchestration',
-    tagline: 'High-throughput backend worker queues, event-driven integrations & statutory webhooks.',
-    description: 'We engineer robust, fault-tolerant backend automation infrastructures that eliminate manual data toil. Leveraging Python, Google Apps Script enterprise workflows, PostgreSQL, and Redis-BullMQ worker clusters, we synchronize multi-system ERPs, CRMs, and statutory compliance registers with sub-second execution telemetry.',
-    techStack: ['Python FastApi / Celery', 'Redis & BullMQ', 'PostgreSQL TimescaleDB', 'Google Apps Script', 'Apache Kafka / RabbitMQ'],
-    enclaveSpec: 'Distributed Worker Cluster with Automatic Dead-Letter Queue (DLQ) & Circuit Breakers',
-    coreMetrics: [
-      { label: 'Pipeline Throughput', value: '45,000 evt/s' },
-      { label: 'DLQ Error Recovery', value: '100% Automated' },
-      { label: 'Execution Telemetry', value: 'Real-time WebSocket' },
-      { label: 'Manual Toil Reduction', value: '91.4% Avg' }
-    ],
-    codeSnippet: {
-      language: 'typescript',
-      filename: 'orchestrator_worker.ts',
-      code: `export const statutoryPipelineQueue = new Queue('gov-assurance-stream', {
-  connection: redisSovereignConnection,
-  defaultJobOptions: {
-    attempts: 5,
-    backoff: { type: 'exponential', delay: 2000 },
-    removeOnComplete: { age: 3600 * 24 * 7 }, // 7 days audit retention
-  }
-});
-
-statutoryPipelineQueue.process(async (job) => {
-  const { documentId, classification, entityPayload } = job.data;
-  const auditStamp = await cryptographicNotary.stamp(job.data);
-  await auditLogStream.dispatch({ event: 'JOB_COMMITTED', stamp: auditStamp });
-});`
-    },
-    features: [
-      'Enterprise backend automations using Python, Google Apps Script & Node',
-      'PostgreSQL/Redis-BullMQ pipelines with distributed state locking',
-      'Automated CRM/ERP bi-directional synchronization with idempotency guarantees',
-      'High-velocity statutory webhook telemetry and immutable audit streaming',
-      'Self-healing worker microservices with automatic DLQ replay'
-    ]
-  },
-  {
-    id: 'ner-guardrails',
-    number: '03',
-    title: 'Prompt-as-Code & Runtime NER Redaction',
-    tagline: 'Sub-50ms in-flight PII, NINO, and Caldicott PHI sanitisation microservices.',
-    description: 'Our proprietary in-flight guardrail microservices intercept and scrub National Insurance numbers (NINOs), NHS patient identifiers, financial account details, and sensitive clinical records prior to model tokenisation. Operating in under 50ms, our NER sanitiser ensures absolute GDPR Article 9 & Caldicott Guardian compliance.',
-    techStack: ['Microsoft Presidio Engine', 'Custom SpaCy UK Gov NER', 'Rust WebAssembly Guard', 'OpenTelemetry Tracing', 'vLLM / Triton'],
-    enclaveSpec: 'Zero-Egress Memory Sanitisation Buffer with Hardware-Isolated Enclaves (TEE)',
-    coreMetrics: [
-      { label: 'In-Flight Redaction Latency', value: '< 42ms' },
-      { label: 'NINO & NHS No. Accuracy', value: '99.98%' },
-      { label: 'GDPR Art. 9 Non-Compliance', value: '0 Incidents' },
-      { label: 'Prompt Injection Deflection', value: '99.4%' }
-    ],
-    codeSnippet: {
-      language: 'rust',
-      filename: 'stream_ner_sanitizer.rs',
-      code: `pub fn sanitize_uk_stream(token_chunk: &str) -> RedactionResult {
-    // Regex + Transformer based dual-pass for UK Gov NINO & NHS 10-digit IDs
-    let nino_clean = NINO_REGEX.replace_all(token_chunk, "[REDACTED_UK_NINO]");
-    let nhs_clean = NHS_NO_REGEX.replace_all(&nino_clean, "[REDACTED_NHS_PATIENT_ID]");
-    let special_cat = PHI_REGEX.replace_all(&nhs_clean, "[REDACTED_CALDICOTT_SPECIAL_CAT]");
-    
-    RedactionResult {
-        sanitized_stream: special_cat.into_owned(),
-        latency_micros: 340, // Sub-millisecond stream buffer
-        compliance_tag: "UK_GDPR_ART9_COMPLIANT"
+      code: `# ISO/IEC 42001 & NIST AI RMF Risk Registry Validator
+def evaluate_model_governance(model_id: str, risk_tier: str):
+    controls = {
+        "ISO_42001_A_6": "AI Impact & Risk Assessment Verified",
+        "NIST_MEASURE_2": "Deterministic Output Grounding Enforced",
+        "UK_GDPR_DPIA": "PII Ingestion Boundary Confirmed"
     }
-}`
-    },
-    features: [
-      'Sub-50ms in-flight PII/NINO/PHI sanitisation microservices integrated into inference',
-      'Caldicott Guardian Principle 1-8 deterministic clinical redaction algorithms',
-      'Dual-pass regex and transformer named-entity recognition (NER) engines',
-      'Semantic prompt-injection deflection and jailbreak tripwires',
-      'Real-time token stream transformation with zero raw payload disk persistence'
-    ]
+    return {"status": "AUDIT_READY", "controls_passed": controls}`
+    }
   },
   {
-    id: 'governance-portals',
-    number: '04',
-    title: 'Custom Governance Portals & Executive Dashboards',
-    tagline: 'High-assurance React/TypeScript interfaces for risk, statutory audit & live LLM-Ops.',
-    description: 'We construct tailored, high-assurance web portals that empower Chief AI Officers, Senior Responsible Owners (SROs), and Statutory Caldicott Guardians to monitor algorithmic risk scores (ARS), audit logs, model drift, and real-time compliance scorecards across all active production deployments.',
-    techStack: ['React 19 / TypeScript', 'Tailwind CSS Dark Executive', 'Lucide UI Engine', 'Chart / D3 Telemetry', 'Role-Based Access Control (RBAC)'],
-    enclaveSpec: 'SSO SAML 2.0 / Entra ID Gov Cloud Integration with Cryptographic Audit Trail',
+    id: "ner-guardrails",
+    number: "02",
+    title: "In-Flight Guardrails & Shadow AI Control",
+    tagline: "Deterministic prompt-as-code filters and data boundary protection preventing model leaks.",
+    description: "We engineer programmatic guardrails that intercept sensitive company data, source code, and customer records before they can reach public foundation models or training datasets.",
+    techStack: ['Prompt-as-Code', 'PII Redaction', 'Deterministic Filters', 'Cloud Enclaves'],
+    enclaveSpec: 'Zero Data Retention Enclave (In-Flight Scrubbing, Input Sanitization)',
     coreMetrics: [
-      { label: 'Live Model Observability', value: '100% Real-time' },
-      { label: 'Statutory Artifact Export', value: 'Instant .JSON / .PDF' },
-      { label: 'Role-Based Access (RBAC)', value: 'Strict 5-Tier' },
-      { label: 'Lighthouse Score', value: '99/100 Perf' }
+      { label: 'Data Leakage Rate', value: '0.00%' },
+      { label: 'Prompt Injection Defense', value: 'Deterministic' },
+      { label: 'Filter Latency', value: '< 45ms' },
+      { label: 'PII Scrubbing Precision', value: '99.9%' }
+    ],
+    features: [
+      'Prompt-as-Code Policy Engine Integration',
+      'Real-Time PII and Confidential Data Redaction',
+      'Prompt Injection and Jailbreak Hardening',
+      'Automated Third-Party SaaS Exposure Blocking'
     ],
     codeSnippet: {
-      language: 'typescript',
-      filename: 'compliance_telemetry_hook.ts',
-      code: `export const useSovereignTelemetry = (modelDeploymentId: string) => {
-  const [telemetry, setTelemetry] = useState<LLMOpsStream | null>(null);
-
-  useEffect(() => {
-    const ws = new WebSocket(\`wss://gov-telemetry.azariah.internal/v1/stream/\${modelDeploymentId}\`);
-    ws.onmessage = (event) => {
-      const payload = JSON.parse(event.data);
-      // Continuous verification of ISO 42001 & ATRS bounds
-      if (payload.driftScore > 0.05 || payload.nerFailedCount > 0) {
-        dispatchAutomatedCircuitBreaker(modelDeploymentId);
-      }
-      setTelemetry(payload);
-    };
-    return () => ws.close();
-  }, [modelDeploymentId]);
-};`
-    },
+      filename: 'guardrail_policy.json',
+      language: 'json',
+      code: `{
+  "policy_name": "enterprise_data_boundary",
+  "rules": {
+    "redact_pii": true,
+    "block_prompt_injection": true,
+    "prevent_model_training_spill": true
+  },
+  "enforcement": "deterministic_drop"
+}`
+    }
+  },
+  {
+    id: "grounded-rag",
+    number: "03",
+    title: "GRC Audit-Readiness & Security Sprints",
+    tagline: "Rigorous compliance preparation, ISMS baselines, and vendor security questionnaire clearance.",
+    description: "We prepare scaling organizations for formal third-party audits (ISO 27001, SOC 2) and build organized evidence vaults that clear enterprise vendor procurement reviews.",
+    techStack: ['ISO 27001', 'SOC 2 Controls', 'UK GDPR DPIA', 'Vendor Risk'],
+    enclaveSpec: 'Enterprise Security Baseline (Role-Based Access, MFA, AES-256 Storage)',
+    coreMetrics: [
+      { label: 'Audit Gap Closure', value: '100% Scoped' },
+      { label: 'Evidence Indexing', value: 'Pre-Organized' },
+      { label: 'Sprint Duration', value: '3-4 Weeks' },
+      { label: 'Vendor Questionnaire Pass', value: 'Accelerated' }
+    ],
     features: [
-      'High-assurance React/TypeScript frontend interfaces with dark luxury aesthetic',
-      'Dynamic compliance scorecards mapped to CDDO ATRS, ISO 42001 & NHS DCB0129',
-      'Live LLM-Ops telemetry monitors with drift alarms and token burn rates',
-      'Human-in-the-Loop (HITL) triage interfaces for mandatory clinical/statutory sign-off',
-      'Instant export of verified statutory assessment payloads in signed JSON & PDF'
+      'Full Cloud Tenancy Security Posture Audit',
+      'ISO 27001 Gap Matrix and Statement of Applicability',
+      'Specialized DPIAs for Automated Workflows',
+      'Centralized Enterprise Evidence Vault'
+    ],
+    codeSnippet: {
+      filename: 'audit_readiness_matrix.py',
+      language: 'python',
+      code: `# ISO 27001 & SOC 2 Continuous Evidence Verifier
+def verify_audit_readiness(tenant_scope: dict):
+    checks = [
+        tenant_scope.get("mfa_enforced", False),
+        tenant_scope.get("rbac_least_privilege", False),
+        tenant_scope.get("evidence_vault_synced", False)
     ]
+    return "CERTIFICATION_READY" if all(checks) else "GAP_IDENTIFIED"`
+    }
+  },
+  {
+    id: "automated-pipelines",
+    number: "04",
+    title: "Autonomous Intake & Operations Pipelines",
+    tagline: "Zero-touch customer ingestion, automated scoring, and master CRM ledger infrastructure.",
+    description: "We deploy custom business automation that captures high-value inquiries, validates corporate domains, updates backend ledgers, and routes qualified leads directly to your calendar.",
+    techStack: ['Google Apps Script', 'Google Workspace', 'Webhooks & APIs', 'Gemini API'],
+    enclaveSpec: 'Automated CRM Ledger Architecture (Zero-Touch Ingestion, Calendar Sync)',
+    coreMetrics: [
+      { label: 'Manual Admin Saved', value: '15+ hrs/wk' },
+      { label: 'Lead Response Time', value: '< 60 sec' },
+      { label: 'Data Accuracy', value: '100%' },
+      { label: 'Operational Friction', value: 'Eliminated' }
+    ],
+    features: [
+      'Automated Multi-Stage Intake Routing',
+      'Corporate Domain Validation and Lead Tiering',
+      'Instant Calendar Booking for High-Budget Leads',
+      'Master Google Sheets and CRM Synchronization'
+    ],
+    codeSnippet: {
+      filename: 'intake_router_pipeline.gs',
+      language: 'javascript',
+      code: `// Autonomous Client Ingestion & CRM Routing
+function onAssessmentSubmitted(e) {
+  const payload = e.namedValues;
+  const budget = payload['Estimated Project Budget'][0];
+  if (budget.includes('£5,000') || budget.includes('£10,000')) {
+    logToMasterLedger(payload, 'PRIORITY_QUALIFIED');
+    dispatchExecutiveCalendarInvite(payload['Corporate Work Email'][0]);
+  }
+}`
+    }
   }
 ];
