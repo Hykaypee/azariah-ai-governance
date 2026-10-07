@@ -2,78 +2,76 @@ import { PricingTier } from '../types';
 
 export const PRICING_TIERS: PricingTier[] = [
   {
-    id: 'tier-1-assurance',
+    id: 'tier-1-governance-readiness',
     tierNumber: 'TIER 01',
-    title: 'Rapid Assurance & Guardrail Gateway',
-    priceRange: '£5,000 – £8,500',
-    timeframe: '2 – 3 Weeks Rapid Sprint',
-    badge: 'Fast-Track Assurance',
+    title: 'AI Governance & Safety Assessment',
+    priceRange: '£5,000 - £8,500',
+    timeframe: '2 - 3 Weeks Fixed Sprint',
+    badge: 'Rapid Readiness',
     isPopular: false,
-    idealFor: 'Teams with an existing prototype or pilot LLM needing urgent statutory clearance before production deployment.',
-    serviceScope: 'Comprehensive audit of 1x production model pipeline, full 4-Tier Algorithmic Risk Assessment (ARS), and drop-in in-flight NER sanitisation microservice.',
+    idealFor: 'Enterprises and growth companies deploying LLMs, internal copilots, or third-party AI needing rapid risk tiering, acceptable use policies, and audit baselines.',
+    serviceScope: 'Complete shadow AI discovery, ISO 42001 / NIST AI RMF gap analysis, prompt injection threat review, and a prioritized 60-day technical remediation roadmap.',
     deliverables: [
-      '1x Complete Production Model & Data Pipeline Audit',
-      'Algorithmic Risk Score (ARS) & Statutory Tiering Matrix',
-      'Drop-in In-Flight NER Redaction Module (NINO, NHS No, PII)',
-      'Cabinet Office ATRS Tier-2 / ISO 42001 Initial Gap Analysis',
-      'Threat Model & Prompt Injection Vulnerability Report',
-      'Executive Board Statutory Sign-Off Briefing'
+      'Comprehensive Shadow AI & Tenancy Discovery',
+      'ISO 42001 & NIST AI RMF Gap Assessment Matrix',
+      'Corporate AI Acceptable Use Policy Suite',
+      'AI System Risk Classification & Impact Register',
+      'Prompt Injection & Data Boundary Threat Report',
+      'Executive Discovery & 60-Day Remediation Roadmap'
     ],
     statutoryArtifacts: [
-      'AIA v3.1 Impact Assessment',
-      'NER Guardrail Spec v1.0',
-      'TPRM Initial Scorecard'
+      'AI Risk Management Register (ISO 42001)',
+      'Corporate AI Acceptable Use Policy',
+      'Executive Risk & Remediation Briefing'
     ]
   },
   {
-    id: 'tier-2-tom-deployment',
+    id: 'tier-2-grc-audit-sprint',
     tierNumber: 'TIER 02',
-    title: 'Target Operating Model & Full-Stack AI Deployment',
-    priceRange: '£15,000 – £30,000',
-    timeframe: '6 – 10 Weeks Milestone-Driven',
+    title: 'GRC Audit-Readiness & Security Sprint',
+    priceRange: '£10,000 - £20,000',
+    timeframe: '3 - 4 Weeks Fixed Sprint',
     badge: 'Most Comprehensive',
     isPopular: true,
-    idealFor: 'Enterprise and public sector bodies building mission-critical RAG pipelines, automated workflows, and formal governance operating models.',
-    serviceScope: 'End-to-end technical systems architecture, sovereign RAG pipeline engineering, CI/CD automated safety test benches, and complete Responsible AI TOM.',
+    idealFor: 'Mid-market enterprises preparing for third-party security audits (ISO 27001, SOC 2), enterprise procurement clearance, or automated data processing under UK GDPR.',
+    serviceScope: 'End-to-end security posture audit, RBAC access control hardening, automated workflow DPIAs, centralized evidence vault architecture, and vendor review clearance.',
     deliverables: [
-      'Complete Responsible AI Target Operating Model (TOM)',
-      'Bespoke Sovereign RAG Architecture with 0.88 Cosine Gating',
-      'Automated Backend Orchestration (Python/BullMQ/PostgreSQL)',
-      'Sub-50ms Runtime NER Sanitisation Microservice Deployment',
-      'Automated CI/CD Safety & Hallucination Test Suite',
-      'Full CDDO ATRS Tier-2 or NHS DCB0129 Hazard Log Documentation',
-      'Custom React/TypeScript Executive Governance Portal & RBAC',
-      'Comprehensive Staff & Technical Team Knowledge Transfer'
+      'Cloud Tenancy Security Baseline & RBAC Hardening',
+      'ISO 27001 Gap Matrix & Statement of Applicability',
+      'Specialized DPIAs for Automated Pipelines & LLMs',
+      'In-Flight Prompt-as-Code Data Redaction Architecture',
+      'Centralized Enterprise Vendor Evidence Vault',
+      'Target Operating Model (TOM) for Compliance & Security',
+      'Board-Level Audit Readiness Sign-Off'
     ],
     statutoryArtifacts: [
-      'ISO/IEC 42001 AIMS Master Blueprint',
-      'NHS DCB0129 Hazard Log (if healthcare)',
-      'CDDO ATRS Tier-2 Statutory Filing Package',
-      'Data Protection Impact Assessment (DPIA) Addendum'
+      'ISO 27001 Statement of Applicability',
+      'Automated Workflow DPIA Documentation',
+      'Enterprise Vendor Security Evidence Vault'
     ]
   },
   {
-    id: 'tier-3-retained-caio',
+    id: 'tier-3-fractional-governance',
     tierNumber: 'TIER 03',
-    title: 'Retained Technical Architecture & Fractional CAIO',
-    priceRange: '£3,500 – £6,500 / month',
+    title: 'Fractional AI Governance & Advisory',
+    priceRange: '£3,500 - £6,500 / month',
     timeframe: 'Quarterly / Annual Retainer (Min. 3 Months)',
-    badge: 'Ongoing Sovereign Oversight',
+    badge: 'Ongoing Oversight',
     isPopular: false,
-    idealFor: 'Scale-ups, enterprise C-suites, and public bodies requiring continuous senior technical authority, model observability, and regulatory compliance.',
-    serviceScope: 'Dedicated fractional Chief AI Officer (CAIO) leadership, ongoing LLM-Ops telemetry monitoring, vector database tuning, and quarterly recertifications.',
+    idealFor: 'Enterprises and scale-ups requiring continuous technical authority, recurring regulatory alignment, vendor risk evaluation, and ongoing compliance monitoring.',
+    serviceScope: 'Dedicated fractional AI Governance Officer leadership, continuous AI asset cataloging, recurring audit certifications, and priority security escalation support.',
     deliverables: [
-      'Fractional Chief AI Officer (CAIO) / Chief Systems Architect seat',
-      '24/7 LLM-Ops Telemetry & Model Drift Telemetry Monitoring',
-      'Continuous Vector DB Re-indexing & Cosine Gate Calibration',
-      'Quarterly ISO 42001 & Statutory Compliance Recertification',
-      'Ad-hoc Architectural Review for New Enterprise AI Use Cases',
-      'Monthly Executive Risk & Sovereign Enclave Health Dashboard',
-      'Priority Incident Response for Security / Jailbreak Anomalies'
+      'Fractional Chief AI Governance Officer Advisory Seat',
+      'Continuous AI Asset & Model Risk Register Maintenance',
+      'Quarterly ISO 42001 & ISO 27001 Recertification Reviews',
+      'Pre-Procurement Review of New AI Tools & SaaS Tenancies',
+      'Ongoing Vendor Security Questionnaire Clearance Support',
+      'Monthly Executive Risk & Compliance Dashboard',
+      'Priority Escalation for Prompt Security & Data Incidents'
     ],
     statutoryArtifacts: [
       'Continuous Compliance Register',
-      'Quarterly Model Audit Certificate',
+      'Quarterly Governance Audit Certificate',
       'Executive Risk Board Reports'
     ]
   }
