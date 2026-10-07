@@ -38,20 +38,19 @@ export const CapabilitiesGrid: React.FC<CapabilitiesGridProps> = ({ onSelectServ
               ENGINEERED CAPABILITIES // 4 PILLARS
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#F5F5F5] tracking-tight">
-              Sovereign Systems &amp; Backend Pipelines
+              Enterprise AI Governance &amp; Secure Pipelines
             </h2>
           </div>
 
           <div className="flex items-center gap-2 font-mono text-[11px] text-[#A3A3A3] bg-[#121212] px-3 py-1.5 rounded border border-[#262626]">
             <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse"></div>
-            <span>UK Sovereign Enclave Architecture</span>
+            <span>ISO 42001 &amp; NIST AI RMF Architecture</span>
           </div>
         </div>
 
         {/* 4 Interactive Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {TECHNICAL_CAPABILITIES.map((cap) => {
-            const Icon = getIcon(cap.id);
             const isSelected = selectedCapId === cap.id;
 
             return (
@@ -118,11 +117,11 @@ export const CapabilitiesGrid: React.FC<CapabilitiesGridProps> = ({ onSelectServ
                 {activeCapability.description}
               </p>
 
-              {/* Enclave Spec Callout */}
+              {/* Architecture Spec Callout */}
               <div className="p-3 rounded bg-[#070707] border border-[#262626] flex items-start gap-2.5">
                 <Cpu className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
                 <div className="text-xs text-[#CCCCCC]">
-                  <strong className="text-[#F5F5F5] font-mono text-[11px]">Enclave Spec: </strong>
+                  <strong className="text-[#F5F5F5] font-mono text-[11px]">Architecture Spec: </strong>
                   {activeCapability.enclaveSpec}
                 </div>
               </div>
